@@ -1,8 +1,9 @@
 from argparse import ArgumentParser
 from cycler import cycler
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 import ezdxf
-
+import os
 
 def main(args):
     parser = ArgumentParser()
@@ -12,6 +13,7 @@ def main(args):
     dwg = ezdxf.readfile(parsed.filename)
     modelspace = dwg.modelspace()
 
+    rcParams['toolbar'] = 'None'
     if not parsed.debug:
         plt.rc('axes', prop_cycle=(cycler('color', ['black'])))
 
@@ -41,4 +43,17 @@ def main(args):
         #     with element.edit_data() as data:
         #         print(data)
 
+    plt.gcf().canvas.set_window_title(os.path.basename(parsed.filename))
+    plt.axis('equal')
+    plt.tick_params(
+        axis='both',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        left="off",
+        right="off",
+        labelleft="off",
+        bottom='off',  # ticks along the bottom edge are off
+        top='off',
+        labelbottom='off'
+    )
+    plt.gcf().set_tight_layout(True)
     plt.show()
