@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from cycler import cycler
 import matplotlib.pyplot as plt
 import ezdxf
 
@@ -6,9 +7,13 @@ import ezdxf
 def main(args):
     parser = ArgumentParser()
     parser.add_argument("filename", type=str, help="DXF file to show you.")
+    parser.add_argument("-d", "--debug", action="store_true", default=False)
     parsed = parser.parse_args(args)
     dwg = ezdxf.readfile(parsed.filename)
     modelspace = dwg.modelspace()
+
+    if not parsed.debug:
+        plt.rc('axes', prop_cycle=(cycler('color', ['black'])))
 
     for element in modelspace:
         if element.dxftype() == 'LINE':
