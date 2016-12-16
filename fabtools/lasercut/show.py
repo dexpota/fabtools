@@ -6,7 +6,7 @@ from matplotlib import patches
 import ezdxf
 import os
 import math
-
+import logging
 
 def bulge_to_arc(p0, p1, bulge):
     my1 = (p0[1] + p1[1]) / 2.0
@@ -34,9 +34,11 @@ def bulge_to_arc(p0, p1, bulge):
     if (p1[1] - cy) < 0:
         startAngle = (2.0 * math.pi) - startAngle
 
-    return (cx, cy), radius, startAngle, angleDeg
+    return (cx, cy), radius, math.degrees(startAngle), angleDeg
 
 def main(args):
+    logger = logging.getLogger(__name__)
+
     parser = ArgumentParser()
     parser.add_argument("filename", type=str, help="DXF file to show you.")
     parser.add_argument("-d", "--debug", action="store_true", default=False)
@@ -52,9 +54,7 @@ def main(args):
         if element.dxftype() == 'LINE':
             start_pnt = element.dxf.start
             end_pnt = element.dxf.end
-            #plt.plot([start_pnt[0], end_pnt[0]], [start_pnt[1], end_pnt[1]])
-            print(start_pnt)
-            print(end_pnt)
+            plt.plot([start_pnt[0], end_pnt[0]], [start_pnt[1], end_pnt[1]])
         elif element.dxftype() == "LWPOLYLINE":
             with element.points() as points:
                 mat_points = []
@@ -66,13 +66,21 @@ def main(args):
                         (cx, cy), radius, startAngle, angleDeg = bulge_to_arc((xa, ya), (xb, yb), bulge_a)
 
                         if angleDeg < 0:
-                            arc = patches.Arc((cx, cy), 2 * radius, 2 * radius, startAngle * (180.0 / math.pi),
-                                              angleDeg, 0)
+                            arc = patches.Arc((cx, cy), 2 * radius, 2 * radius, startAngle, angleDeg, 0)
                         else:
-                            arc = patches.Arc((cx, cy), 2 * radius, 2 * radius, startAngle * (180.0 / math.pi),
-                                              0, angleDeg)
+                            arc = patches.Arc((cx, cy), 2 * radius, 2 * radius, startAngle, 0, angleDeg)
 
+                        print("startangle", startAngle)
+                        print("angledeg", angleDeg)
+                        plt.plot(xa, ya, "^g")
+                        plt.plot(xb, yb, "^b")
                         plt.gca().add_patch(arc)
+
+                for a, b in zip(points, points[1:]):
+                    xa, ya, start_width_a, end_width_a, bulge_a = a
+                    xb, yb, start_width_b, end_width_b, bulge_b = b
+                    if bulge_a == 0:
+                        plt.plot([xa, xb], [ya, yb])
 
         elif element.dxftype() == "POLYLINE":
             print("POLYLINE")
