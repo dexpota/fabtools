@@ -31,8 +31,6 @@ def bulge_to_arc(p0, p1, bulge):
     cy = p0[1] + radius * math.sin(phi)
     startAngle = math.acos((p0[0] - cx) / radius)
     endAngle = startAngle + angle
-    if (p1[1] - cy) < 0:
-        startAngle = (2.0 * math.pi) - startAngle
 
     return (cx, cy), radius, math.degrees(startAngle), angleDeg
 
@@ -70,8 +68,6 @@ def main(args):
                         else:
                             arc = patches.Arc((cx, cy), 2 * radius, 2 * radius, startAngle, 0, angleDeg)
 
-                        print("startangle", startAngle)
-                        print("angledeg", angleDeg)
                         plt.plot(xa, ya, "^g")
                         plt.plot(xb, yb, "^b")
                         plt.gca().add_patch(arc)
