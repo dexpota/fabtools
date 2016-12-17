@@ -34,7 +34,9 @@ def bulge_to_arc(p0, p1, bulge):
 
     return (cx, cy), radius, math.degrees(startAngle), angleDeg
 
+
 def main(args):
+    logging.basicConfig(level=logging.WARNING)
     logger = logging.getLogger(__name__)
 
     parser = ArgumentParser()
@@ -50,13 +52,21 @@ def main(args):
 
     for element in modelspace:
         if element.dxftype() == 'LINE':
+            logger.info("drawing LINE")
+
             start_pnt = element.dxf.start
             end_pnt = element.dxf.end
             plt.plot([start_pnt[0], end_pnt[0]], [start_pnt[1], end_pnt[1]])
         elif element.dxftype() == "LWPOLYLINE":
+            logger.info("drawing LWPOLYLINE")
+
             with element.points() as points:
-                mat_points = []
-                for a, b in zip(points, points[1:] + [points[0]]):
+                if element.closed:
+                    segments = zip(points, points[1:] + [points[0]])
+                else:
+                    segments = zip(points, points[1:])
+
+                for a, b in segments:
                     xa, ya, start_width_a, end_width_a, bulge_a = a
                     xb, yb, start_width_b, end_width_b, bulge_b = b
 
@@ -67,24 +77,15 @@ def main(args):
                             arc = patches.Arc((cx, cy), 2 * radius, 2 * radius, startAngle, angleDeg, 0)
                         else:
                             arc = patches.Arc((cx, cy), 2 * radius, 2 * radius, startAngle, 0, angleDeg)
-
-                        plt.plot(xa, ya, "^g")
-                        plt.plot(xb, yb, "^b")
                         plt.gca().add_patch(arc)
-
-                for a, b in zip(points, points[1:]):
-                    xa, ya, start_width_a, end_width_a, bulge_a = a
-                    xb, yb, start_width_b, end_width_b, bulge_b = b
-                    if bulge_a == 0:
+                    else:
                         plt.plot([xa, xb], [ya, yb])
-
         elif element.dxftype() == "POLYLINE":
-            print("POLYLINE")
+            logger.warning("POLYLINE")
+        elif element.dxftype() == "REGION":
+            logger.warning("REGION")
         else:
-            print(element.dxftype())
-        # elif element.dxftype() == "REGION":
-        #     with element.edit_data() as data:
-        #         print(data)
+            logger.warning(element.dxftype())
 
     plt.gcf().canvas.set_window_title(os.path.basename(parsed.filename))
     plt.axis('equal')
