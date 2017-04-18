@@ -1,5 +1,6 @@
 import ezdxf
 import logging
+import numpy as np
 from argparse import ArgumentParser
 
 
@@ -14,3 +15,8 @@ def main(args):
 
     dwg = ezdxf.readfile(parsed.filename)
     modelspace = dwg.modelspace()
+
+    path_length = 0
+    for element in modelspace:
+        if element.dxftype() == 'LINE':
+            path_length += np.linalg.norm([element.dxf.start, element.dxf.end])
